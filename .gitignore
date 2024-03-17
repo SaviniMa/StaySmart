@@ -1,0 +1,5 @@
+/node_modules
+/app/node_modules
+/app/.vscode
+/api-stay-smart/node_modules
+/api-stay-smart/.aws-sam

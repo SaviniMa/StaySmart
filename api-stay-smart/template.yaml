@@ -1,0 +1,197 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  These are the support APIs for the applied project, GEINE
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+  Api:
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'content-type'"
+      AllowOrigin: "'*'"
+      # AllowCredentials: true  Uncomment only if you choose a specific origin instead of the * wildcard.
+
+Resources:
+
+  CreateHotel:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/hotels/createHotel.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to create new hotel records
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HotelsTable
+      Environment:
+        Variables:
+          HOTELS_TABLE_NAME: !Ref HotelsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /hotels
+            Method: POST
+
+  GetTopHotels:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/hotels/getTopHotels.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to get top hotesls saved in the DB
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HotelsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - LambdaInvokePolicy:
+            FunctionName: recommendHotels
+      Environment:
+        Variables:
+          HOTELS_TABLE_NAME: !Ref HotelsTable
+          USERS_TABLE_NAME: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /hotels/top
+            Method: GET
+
+  CreateTag:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/tags/createTags.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to create new tag records
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TagsTable
+      Environment:
+        Variables:
+          TAGS_TABLE_NAME: !Ref TagsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /tags
+            Method: POST
+
+  GetTopTags:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/tags/getTopTags.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to get tags saved in the DB
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TagsTable
+      Environment:
+        Variables:
+          TAGS_TABLE_NAME: !Ref TagsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /tags/top
+            Method: GET
+
+  CreateUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/users/createUser.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to create / register new users into the system
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+
+  LoginUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/users/loginUser.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to check and login the users into the system
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME: !Ref UsersTable
+          SIGN_KEY: StaySmartSignKey
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users/login
+            Method: POST
+
+
+  HotelsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  TagsTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  UsersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
