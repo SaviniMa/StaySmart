@@ -26,6 +26,11 @@ export default {
             <h2 class="title"><b>StaySmart</b></h2>
         </div>
 
+        <div class="links">
+            <router-link class="link-item" to="/">Home</router-link>
+            <router-link class="link-item" to="/dashboards">Dashboards</router-link>
+        </div>
+
         <div class="actions">
             <div class="email">{{ emailAddress }}</div>
             <a href="#" @click="loginOut()">Logout</a>
@@ -58,5 +63,15 @@ export default {
 .actions {
     display: flex;
     align-items: center;
+}
+
+.links {
+    display: flex;
+    align-items: center;
+
+    .link-item {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
 }
 </style>
