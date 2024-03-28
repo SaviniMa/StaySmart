@@ -9,6 +9,7 @@ export default {
         return {
             search_text: '',
             search_results: [],
+            user_preferences_results: [],
             selectedItem: null,
             items: [
                 { id: 'Galle', name: 'Galle' },
@@ -17,7 +18,8 @@ export default {
                 { id: "Negombo", name: 'Negombo' },
                 { id: "Colombo", name: 'Colombo' }
             ],
-            msg_hot_picks: 'Hot Picks',
+            msg_hot_picks_search: 'Hot Picks by Search',
+            msg_hot_picks_preferences: 'Hot Picks for you',
             msg_your_search_results: 'Your search results',
             msg_no_items_found: 'No items found',
             msg_loading: 'Loading...',
@@ -26,16 +28,28 @@ export default {
         }
     },
     created() {
-        this.getTopHotels()
+        const calls = [];
+        calls.push(this.getTopHotels());
+        calls.push(this.getUserPreferences(this.selectedItem));
+        Promise.all(calls).then(() => {
+            console.log('search called');
+        })
     },
     methods: {
         async search() {
-            if (this.search_text != '') {
+            if (this.selectedItem != null) {
                 try {
                     this.search_results = [];
+                    this.user_preferences_results = [];
                     this.page_title = this.msg_your_search_results;
                     this.page_sub_title = this.msg_loading;
-                    await this.getTopHotels(this.search_text, this.selectedItem);
+                    
+                    const calls = [];
+                    calls.push(this.getTopHotels(this.search_text, this.selectedItem));
+                    calls.push(this.getUserPreferences(this.selectedItem));
+                    Promise.all(calls).then(() => {
+                        console.log('search completed');
+                    })
                 } catch (error) {
                     console.log(error)
                 }
@@ -43,7 +57,7 @@ export default {
         },
         async getTopHotels (description = '', location = '') {
             try {
-                this.page_title = this.msg_hot_picks;
+                this.page_title = this.msg_hot_picks_search;
                 this.page_sub_title = this.msg_loading;
                 
                 const userEmail = localStorage.getItem('x-user');
@@ -54,7 +68,31 @@ export default {
                         imgUrl: item["ImgUrl"],
                         hotelName: item["Hotel Name"],
                         city: item["City"],
-                        reviews: item["Review"],
+                        reviews: item["reviews"],
+                        date: item["Date"]
+                    })
+                });
+                if (response.data.data.length === 0) {
+                    this.page_sub_title = this.msg_no_items_found;
+                }
+            } catch (error) {
+                this.page_sub_title = this.msg_no_items_found;
+            }
+        },
+        async getUserPreferences (location) {
+            try {
+                this.page_title = this.msg_hot_picks_search;
+                this.page_sub_title = this.msg_loading;
+                
+                const userEmail = localStorage.getItem('x-user');
+                const response = await axios.get('https://jr0m39z7w3.execute-api.ca-central-1.amazonaws.com/Prod/hotels/user-preferences?email=' + userEmail + '&location=' + location);
+                response.data.data.forEach(item => {
+                    this.user_preferences_results.push({
+                        hotelUrl: item["HotelUrl"],
+                        imgUrl: item["ImgUrl"],
+                        hotelName: item["Hotel Name"],
+                        city: item["City"],
+                        reviews: item["reviews"],
                         date: item["Date"]
                     })
                 });
@@ -71,12 +109,18 @@ export default {
             }
         },
         clear() {
-            this.page_title = this.msg_hot_picks;
+            this.page_title = this.msg_hot_picks_search;
             this.search_results = []
             this.search_text = ''
             this.selectedItem = null
             localStorage.removeItem('search')
-            this.getTopHotels();
+
+            const calls = [];
+            calls.push(this.getTopHotels());
+            calls.push(this.getUserPreferences(this.selectedItem));
+            Promise.all(calls).then(() => {
+                console.log('search completed');
+            })
         },
     },
     mounted() {
@@ -118,14 +162,30 @@ export default {
             />
         </button>
     </div>
-    <h2 class="title">{{ page_title }}</h2>
-    <div v-if="search_results.length == 0">{{ page_sub_title }}</div>
-    <SearchItem
-        :key="item.id"
-        :searchItem="item"
-        v-for="item in search_results"
-    >
-    </SearchItem>
+    <div class="search-results">
+        <div>
+            <h2 class="title">{{ msg_hot_picks_search }}</h2>
+            <div v-if="search_results.length == 0">{{ page_sub_title }}</div>
+            <SearchItem
+                :key="item.id"
+                :searchItem="item"
+                v-for="item in search_results"
+            >
+            </SearchItem>
+        </div>
+        <div>
+            <h2 class="title">{{ msg_hot_picks_preferences }}</h2>
+            <div v-if="user_preferences_results.length == 0">{{ page_sub_title }}</div>
+            <SearchItem
+                :key="item.id"
+                :searchItem="item"
+                v-for="item in user_preferences_results"
+            >
+            </SearchItem>
+        </div>
+    </div>
+    
+    
 </template>
 
 <style scoped>
@@ -159,5 +219,11 @@ export default {
     background-position: 10px 10px;
     background-repeat: no-repeat;
     padding: 12px 20px 12px 40px;
+}
+
+.search-results{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
 }
 </style>

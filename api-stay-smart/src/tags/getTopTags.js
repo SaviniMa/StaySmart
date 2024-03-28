@@ -28,7 +28,7 @@ exports.handler = async (event) => {
         let counter = 0;
         data.Items.sort((a, b) => a.id - b.id);
         for (const item of data.Items) {
-            if(counter < 10){
+            if(counter < 5){
                 results.push(item);
                 counter++;
             }

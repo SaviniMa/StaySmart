@@ -16,6 +16,29 @@ Globals:
 
 Resources:
 
+  CreateChartRecord:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/charts/createRecord.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to create new hotel chart records
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChartsTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ChartsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /charts
+            Method: POST
+
   CreateHotel:
     Type: AWS::Serverless::Function
     Properties:
@@ -65,6 +88,34 @@ Resources:
           Type: Api
           Properties:
             Path: /hotels/top
+            Method: GET
+
+  GetHotelForPreferences:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/hotels/getHotelsForPreferences.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to get hotesls for user preferences
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HotelsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - LambdaInvokePolicy:
+            FunctionName: recommendHotels
+      Environment:
+        Variables:
+          HOTELS_TABLE_NAME: !Ref HotelsTable
+          USERS_TABLE_NAME: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /hotels/user-preferences
             Method: GET
 
   CreateTag:
@@ -182,6 +233,16 @@ Resources:
         WriteCapacityUnits: 5
 
   UsersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+    
+  ChartsTable:
     Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:

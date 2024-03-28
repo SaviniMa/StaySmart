@@ -62,5 +62,6 @@ export default {
     max-width: 1000px;
     display: flex;
     flex-direction: row;
+    margin-right: 8px;
 }
 </style>

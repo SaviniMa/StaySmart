@@ -1,7 +1,7 @@
 // Create clients and set shared const values outside of the handler.
 
 // Get the DynamoDB table name from environment variables
-const tableName = process.env.HOTELS_TABLE_NAME;
+const hotelsTableName = process.env.HOTELS_TABLE_NAME;
 const userstableName = process.env.USERS_TABLE_NAME;
 
 // Create a DocumentClient that represents the query to add an item
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
 
         // Get URL parameters from the event object
         const queryParams = event.queryStringParameters;
-        
+
         // Extract specific parameters
         let _description = queryParams.description;
         let _location = queryParams.location;
@@ -39,7 +39,7 @@ exports.handler = async (event) => {
 
         let userObject;
         if (_description === "") {
-            if(_location === ""){
+            if (_location === "") {
                 _location = "Galle";
             }
             const getparams = {
@@ -58,7 +58,7 @@ exports.handler = async (event) => {
         const params = {
             FunctionName: 'recommendHotels',
             InvocationType: 'RequestResponse',
-            Payload: JSON.stringify({ description: _description, location: _location})
+            Payload: JSON.stringify({ description: _description, location: _location })
         };
 
         console.log("Invoking...");
@@ -70,13 +70,44 @@ exports.handler = async (event) => {
             const jsonString = byteArray.toString('utf8'); // Convert byte array to string
             const jsonObject = JSON.parse(jsonString);
             console.log(jsonObject);
+
+            const hotelNames = jsonObject.body.map((hotel) => hotel["Hotel Name"]);
+            console.log("Hotel Names:", hotelNames);
+
+            const params2 = {
+                TableName: hotelsTableName,
+                FilterExpression: 'hotelName = :name1 OR hotelName = :name2 OR hotelName = :name3 OR hotelName = :name4 OR hotelName = :name5',
+                ExpressionAttributeValues: { 
+                    ':name1': hotelNames[0],
+                    ':name2': hotelNames[1],
+                    ':name3': hotelNames[2],
+                    ':name4': hotelNames[3],
+                    ':name5': hotelNames[4] 
+                }
+            };
+
+            const hotels = await docClient.scan(params2).promise();
+            console.log("Hotels", hotels);
+
+            jsonObject.body.map((hotel) => {
+                const found = hotels.Items.find((item) => item.hotelName === hotel['Hotel Name']);
+                if (found) {
+                    hotel.reviews = found.reviews;
+                }
+            });
+
             return common.getAPIResponseObj(event, jsonObject.body, "Top hotel recommendations get successful", 200);
-          } catch (err) {
+        } catch (err) {
             console.error(err);
-          }
+        }
     } catch (error) {
         console.info(`error: `, error);
         return common.getAPIResponseObj(event, error, error.message, 400);
     }
+
+}
+
+function getParams (hotelName) {
+    let filterExpression = 'contains (#name, :name)';
 
 }
