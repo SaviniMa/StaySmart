@@ -2,10 +2,12 @@
 import SearchItem from './SearchItem.vue'
 import axios from 'axios';
 import { Pie } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 export default {
     components: {
         SearchItem,
-        Pie
+        Pie,
+        Bar
     },
     data() {
         return {
@@ -21,6 +23,29 @@ export default {
             chart_options: {
                 responsive: true,
                 maintainAspectRatio: false
+            },
+            barchart_data: {
+                labels: [
+                    'January',
+                    'February',
+                    'March',
+                    'April',
+                    'May',
+                    'June',
+                    'July',
+                    'August',
+                    'September',
+                    'October',
+                    'November',
+                    'December'
+                ],
+                datasets: [
+                    {
+                        label: 'Data One',
+                        backgroundColor: '#f87979',
+                        data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
+                    }
+                ]
             }
         }
     },
@@ -120,6 +145,9 @@ export default {
 </script>
 
 <template>
+    <div>
+        <Bar id="barchart" :data="barchart_data" :options="chart_options" />
+    </div>
     <div>
         <Pie id="chart1" :data="chart_data" :options="chart_options" />
     </div>

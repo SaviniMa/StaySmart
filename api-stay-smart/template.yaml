@@ -39,6 +39,29 @@ Resources:
             Path: /charts
             Method: POST
 
+  GetChartRecords:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/charts/getChartData.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to get chart data
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ChartsTable
+      Environment:
+        Variables:
+          CHARTS_TABLE_NAME: !Ref ChartsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /charts/top-hotels
+            Method: GET
+
   CreateHotel:
     Type: AWS::Serverless::Function
     Properties:
