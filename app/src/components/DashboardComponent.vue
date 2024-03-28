@@ -82,7 +82,14 @@ export default {
                         data: [0]
                     }
                 ]
-            }
+            },
+            color_pallet: [
+                ["#F3696E","#F47953","#F68938","#F7991D","#F8A902"],
+                ['#243748',"#2E465E","#385674","#416589","#4B749F"],
+                ['#F0073B',"#E21852","#D52A6A","#C73B81","#B94C98"],
+                ['#CF203E',"#AF2F57","#903F6F","#704E88","#505DA0"],
+                ['#EA5459',"#ED6E4E","#F18743","#F4A137","#F7BA2C"]
+            ]
         }
     },
     created() {
@@ -92,22 +99,22 @@ export default {
             try {
                 const response = await axios.get('https://jr0m39z7w3.execute-api.ca-central-1.amazonaws.com/Prod/charts/top-hotels');
                 this.main_chart_data = response.data.data;
-                this.chart_one_data = this.getPieChartData(this.main_chart_data.galle);
-                this.chart_two_data = this.getPieChartData(this.main_chart_data.colombo);
-                this.chart_three_data = this.getPieChartData(this.main_chart_data.negombo);
-                this.chart_four_data = this.getPieChartData(this.main_chart_data.kandy);
-                this.chart_five_data = this.getPieChartData(this.main_chart_data['nuwara eliya']);
+                this.chart_one_data = this.getPieChartData(this.main_chart_data.galle, 0);
+                this.chart_two_data = this.getPieChartData(this.main_chart_data.colombo, 1);
+                this.chart_three_data = this.getPieChartData(this.main_chart_data.negombo, 2);
+                this.chart_four_data = this.getPieChartData(this.main_chart_data.kandy, 3);
+                this.chart_five_data = this.getPieChartData(this.main_chart_data['nuwara eliya'], 4);
                 this.barchart_data = this.getBarChartData(this.main_chart_data.barChart);
             } catch (error) {
                 console.log(error);
             }
         },
-        getPieChartData(data) {
+        getPieChartData(data, color) {
             let dynamicRecord = {
                 labels: data.map(item => item.hotelName),
                 datasets: [
                     {
-                        backgroundColor: ['#41B883', '#E46651', '#00D8FF', '#DD1B16', '#41B883'],
+                        backgroundColor: this.color_pallet[color],
                         data: data.map(item => parseFloat(item.predicted_proba))
                     }
                 ]
