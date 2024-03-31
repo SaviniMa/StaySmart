@@ -62,7 +62,7 @@
                 />
             </div>
             <div>
-                <h3>Please enter your preferences</h3>
+                <h3>Please select your preferences</h3>
             </div>
             <div class="checkboxs">
                 <div class="checkbox" v-for="(option, index) in preferences" :key="index">

@@ -32,7 +32,7 @@ export default {
         </div>
 
         <div class="actions">
-            <div class="email">{{ emailAddress }}</div>
+            <div class="email"><router-link to="/profile">{{ emailAddress }}</router-link></div>
             <a href="#" @click="loginOut()">Logout</a>
         </div>
     </div>

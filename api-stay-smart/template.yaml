@@ -9,7 +9,7 @@ Globals:
     Timeout: 3
   Api:
     Cors:
-      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowMethods: "'GET,POST,PUT,OPTIONS'"
       AllowHeaders: "'content-type'"
       AllowOrigin: "'*'"
       # AllowCredentials: true  Uncomment only if you choose a specific origin instead of the * wildcard.
@@ -234,6 +234,51 @@ Resources:
             Path: /users/login
             Method: POST
 
+  GetUserPreferences:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/users/getUserPreferences.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to get user preferences
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users/preferences
+            Method: GET
+
+  UpdateUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/users/updateUser.handler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Use this function to update the user preferences
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          USER_TABLE_NAME: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: PUT
 
   HotelsTable:
     Type: AWS::Serverless::SimpleTable
